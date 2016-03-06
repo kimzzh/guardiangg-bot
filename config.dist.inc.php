@@ -17,5 +17,7 @@ define("ADMIN_PASSWORD", "");                                         // Set thi
 define("TELEGRAM_API_KEY", "12345678:ABCDEF_ghfgfhgfkjgfkidf");       // Obtain by talking to @BotFather on Telegram
 define("BUNGIENET_API_KEY", "123445678123445678");                    // Obtain by registering an app on https://www.bungie.net/en/User/API
 define("GOOGLE_ANALYTICS_ID", "");                                    // Set this to Google Analytics id (UA-12345678-1) if you want Google Analytics tracking
+define("SLACK_CLIENT_ID", "");                                        // Set this to your Slack app client id (if you created a separate app)
+define("SLACK_CLIENT_SECRET", "");                                    // Set this to your Slack app client secret (if you created a separate app)
 
 define("BOT_URL_BASE", "https://myserver.com/guardiangg/");           // Base URL for this bot on your server. Must include the trailing slash.
