@@ -10,7 +10,7 @@
 
 require_once("common.inc.php");
 
-if (!$_REQUEST['secret'] or $_REQUEST['secret'] != ADMIN_PASSWORD) {
+if (!isset($_REQUEST['secret']) or $_REQUEST['secret'] != ADMIN_PASSWORD) {
     die("Admin password is not supplied or is invalid. Use ".BOT_URL_BASE."?secret=PASSWORD to access this script.");
 }
 
