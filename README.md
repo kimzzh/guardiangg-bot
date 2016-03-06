@@ -1,7 +1,8 @@
 # guardiangg-bot
 [![Deployment status from DeployBot](https://slavikus.deploybot.com/badge/13023224041108/66629.svg)](http://deploybot.com)
+[![Add to Slack](https://platform.slack-edge.com/img/add_to_slack.png)](https://slack.com/oauth/authorize?scope=commands&client_id=11437089072.24756591185)
 
-This is a quick & dirty bot for Telegram to interface with excellent Guardian.GG website and API and quickly report fireteams and Elo status for Destiny game by Bungie.
+This is a quick & dirty bot for Telegram and Slack to interface with excellent Guardian.GG website and API and quickly report fireteams and Elo status for Destiny game by Bungie.
 
 ## Setup
 
