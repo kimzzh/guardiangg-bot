@@ -56,11 +56,16 @@ function handle_inline_query($req) {
 function handle_message($req) {
     $text = @$req['message']['text'];
     
-    if (!$text or substr($text, 0, 1) != '/')
+    if (!$text)
         return;
-    
-    $cmd = array_shift(split(' ', $text));
-    $args = array_splice(split(' ', $text), 1);
+    if (substr($text, 0, 1) == '/')
+    {
+        $cmd = array_shift(split(' ', $text));
+        $args = array_splice(split(' ', $text), 1);
+    } else {
+        $cmd = '/too';
+        $args = array($text);
+    }
     
     // split off the bot name from cmd, if any
     @list($cmd, $bot_name) = @split('@', $cmd, 2);
@@ -82,12 +87,6 @@ function handle_message($req) {
         case '/skirmish':
         handle_too($req, $args, 9);
         break;
-        
-        /*
-        case '/test':
-        handle_test($req, $args, 14);
-        break;
-        */
         
         default:
         if (strtolower($bot_name) == 'guardianggbot')
