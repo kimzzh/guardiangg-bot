@@ -38,11 +38,11 @@ function get_elo($handle, $system = 0)
     if ($user_id == null)
         return null;
     
-    $elo = callGuardianGG($user_id);
-    if (!$elo)
+    $elo = callGuardianGG_v2($user_id);
+    if (!@$elo["data"])
         return null;
     
-    return array('handle' => $out_handle, 'user_id' => $user_id, 'system' => intval($out_system), 'elo' => $elo);
+    return array('handle' => $out_handle, 'user_id' => $user_id, 'system' => intval($out_system), 'clan' => $elo["data"]["clanName"], 'elo' => $elo["data"]["modes"]);
 }
 
 /*
@@ -140,6 +140,22 @@ function callGuardianGG($user_id) {
     $ctx = stream_context_create($opts);
     
     $fp = fopen('https://api.guardian.gg/elo/'.rawurlencode($user_id), 'r', false, $ctx);
+    $result = stream_get_contents($fp);
+    fclose($fp);
+    
+    return json_decode($result, true);
+}
+
+function callGuardianGG_v2($user_id) {
+    $opts = array(
+        'http' => array(
+            'method' => 'GET',
+        )
+    );
+    
+    $ctx = stream_context_create($opts);
+    
+    $fp = fopen('https://api.guardian.gg/v2/players/'.rawurlencode($user_id)."/", 'r', false, $ctx);
     $result = stream_get_contents($fp);
     fclose($fp);
     

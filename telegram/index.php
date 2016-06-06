@@ -184,25 +184,30 @@ function elo_text($elo, $mode = 0, $include_nick = true) {
             $txt .= "_PSN_";
         }
     
-        $txt .= "):\n\n";
+        $txt .= ")";
+        if ($elo["clan"]) {
+            $txt .= " @ \"".$elo['clan']."\"";
+        }
+        $txt .= ":\n\n";
     }
     
-    foreach ($elo['elo'] as $arr) {
-        if ($mode == 0 or intval($arr['mode']) == $mode)
+    foreach ($elo['elo'] as $arr_mode => $arr) {
+        if ($mode == 0 or intval($arr_mode) == $mode)
         {
             $line = '';
             
-            if (intval($arr['rank']) > 0) {
-                $line .= mode_name($arr['mode']).": *".round(floatval($arr['elo']), 2)."*";
-                if (intval($arr['rank']) < 5000)
-                    $line .= " _#".$arr['rank']."_";
-            }
-            
-            if (intval($arr['gamesPlayedSolo']) > 0) {
-                if (intval($arr['rank']) > 0)
-                    $line .= " (solo: ".round(floatval($arr['eloSolo']), 2).")";
-                else
-                    $line .= mode_name($arr['mode']).": *".round(floatval($arr['eloSolo']), 2)."* (solo only)";
+            if (intval($arr['gamesPlayed']) > 0) {
+                $line .= mode_name(intval($arr_mode)).": *".round(floatval($arr['elo']), 2)."*";
+                $line .= ", K/D: *".round(floatval($arr['kills'])/floatval($arr['deaths']), 2)."*";
+                $line .= ", K/D/A: _".round(floatval($arr['kills']+$arr['assists'])/floatval($arr['deaths']), 2)."_";
+                $line .= ", Win Rate: _". round((floatval($arr["wins"])/floatval($arr['gamesPlayed'])) * 100.0, 2)."%_";
+                            
+                $hours = round(floatval($arr["timePlayed"]) / (60.0*60.0), 1);
+                $line .= ", Games: ".$arr["gamesPlayed"].", ".$hours."h";
+                
+                if ($arr['elo'] >= 2200 or round(floatval($arr['kills'])/floatval($arr['deaths']), 2) >= 2.5) $line .= "  💀";
+                else if ($arr['elo'] >= 2000 or round(floatval($arr['kills'])/floatval($arr['deaths']), 2) >= 2.0) $line .= "  👻";
+                else if ($arr['elo'] >= 1800 or round(floatval($arr['kills'])/floatval($arr['deaths']), 2) >= 1.8) $line .= "  😎";
             }
             
             if ($line)
