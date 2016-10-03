@@ -124,17 +124,36 @@ function handle_too($req, $args, $mode = 14) {
         return;
     }
     
-    $elos = callGuardianGGFireteam($user_id, $mode);
-    if ($elos == null)
+    $accounts = get_user_accounts($user_id, $out_system);
+    
+    $elos = null;
+    
+    if ($accounts != null) {
+        $char_id = array_shift($accounts);
+        
+        $fireteam = get_fireteam($user_id, $out_system, $char_id['id'], $mode);
+        
+        if ($fireteam) {
+            $elos = array();
+            
+            foreach ($fireteam as $member) {
+                $elo = get_elo_v2($member['handle'], $member['id'], $member['system']);
+                $elos[] = $elo;
+            }
+        }
+    }
+    
+    if ($elos == null or !count($elos))
     {
         send_msg($req, "Sorry, $mode_name fireteam data for *".$out_handle."* was not found. Try _/elo ".$out_handle."_");
         return;
     }
     
     $txt = '';
-    foreach ($elos as $elo) {
-        $txt .= "[".$elo['name']."](http://guardian.gg/en/profile/".$elo['membershipType']."/".rawurlencode($elo['name'])."/$mode): ";
+    foreach ($elos as $eloData) {
+        $txt .= "[".$eloData['handle']."](http://guardian.gg/en/profile/".$eloData['system']."/".rawurlencode($eloData['handle'])."/$mode): ";
             
+        $elo = $eloData['elo'][$mode];
             $txt .= "Elo *".round($elo['elo'], 0)."*";
             $txt .= ", K/D: _".round(floatval($elo['kills'])/floatval($elo['deaths']), 2)."_";
             $txt .= ", K/D/A: _".round(floatval($elo['kills']+$elo['assists'])/floatval($elo['deaths']), 2)."_";

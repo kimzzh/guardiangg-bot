@@ -62,7 +62,9 @@ function mode_name($mode_id) {
         15 => "Doubles",
         28 => "Zone Control",
         29 => "SRL",
-        9 => "Skirmish"
+        9 => "Skirmish",
+        31 => "Supremacy",
+        531 => "Supremacy Rumble"
     );
     
     if (isset($MODES[intval($mode_id)]))
@@ -214,4 +216,97 @@ function record_hit($handle, $endpoint) {
      $ctx = stream_context_create($opts);
      $fp = fopen('https://www.google-analytics.com/collect', 'r', false, $ctx);
      fclose($fp);
+}
+
+function get_elo_v2($handle, $user_id, $system) {
+    $elo = callGuardianGG_v2($user_id);
+    if (!@$elo["data"])
+        return null;
+    
+    return array('handle' => $handle, 'user_id' => $user_id, 'system' => intval($system), 'clan' => $elo["data"]["clanName"], 'elo' => $elo["data"]["modes"]);
+}
+
+function get_fireteam($user_id, $system_id, $character_id, $mode = 14) {
+    $res = json_decode(callBungieNet("https://www.bungie.net/platform/destiny/Stats/ActivityHistory/".$system_id."/".rawurlencode($user_id)."/".rawurlencode($character_id)."/?mode=".$mode."&count=1&lc=en"), true);
+    
+    if ($res && is_array($res['Response']['data']) && count($res['Response']['data']) > 0)
+    {
+        $last_activity = @array_shift($res['Response']['data']['activities']);
+        
+        if ($last_activity) {
+            // Fetch activity instance id
+            $instanceId = $last_activity['activityDetails']['instanceId'];
+            if ($instanceId) {
+                $res2 = json_decode(callBungieNet("https://www.bungie.net/platform/destiny/Stats/PostGameCarnageReport/".rawurlencode($instanceId)."/?lc=en"), true);
+                 
+                // Try to find ourselves
+                $team_id = null;
+                foreach ($res2['Response']['data']['entries'] as $entry) {
+                    if ($entry['player']['destinyUserInfo']['membershipId'] == $user_id) {
+                        // Found ourselves, gather team
+                        $team_id = $entry['values']['team']['basic']['value'];
+                        break;
+                    }
+                }
+                
+                if ($team_id !== null) {
+                    // Find the whole fireteam
+                    $fireteam = array();
+                    
+                    foreach ($res2['Response']['data']['entries'] as $entry) {
+                        if ($entry['values']['team']['basic']['value'] == $team_id) {
+                            $fireteam[] = array('id' => $entry['player']['destinyUserInfo']['membershipId'],
+                                                'handle' => $entry['player']['destinyUserInfo']['displayName'],
+                                                'system' => $entry['player']['destinyUserInfo']['membershipType']);
+                        }
+                    }
+                    
+                    return $fireteam;
+                }
+            }
+        }
+    }
+    
+    return null;
+}
+
+/*
+    Lookup user on Bungie.Net. System should be 1 for XBL, 2 for PSN or 0 to try and auto-detect.
+
+    Returns:
+        Bungie.Net user id or null if not found.
+        out_system and out_handle will also be filled if user was found.
+*/
+function get_user_accounts($handle, $system) {
+    $res = json_decode(callBungieNet("https://www.bungie.net/platform/destiny/".$system."/Account/".rawurlencode($handle)."/?lc=en"), true);
+    
+    if ($res && is_array($res['Response']['data']) && count($res['Response']['data']) > 0)
+    {
+        $resp = $res['Response']['data'];
+        
+        if (is_array($resp['characters'])) {
+            $chars = $resp['characters'];
+            
+            $retval = array();
+            
+            foreach ($chars as $char) {
+                $retval[] = array('id' => $char['characterBase']['characterId'], 'last' => $char['characterBase']['dateLastPlayed']);
+            }
+            
+            usort($retval, "user_accounts_compare");
+            
+            return $retval;
+        }
+    }
+    
+    return null;
+}
+
+function user_accounts_compare($a1, $a2) {
+    if ($a1['last'] == $a2['last']) return 0;
+    
+    if ($a1['last'] > $a2['last'])
+        return -1;
+    
+    return 1;
 }
